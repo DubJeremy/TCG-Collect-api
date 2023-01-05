@@ -10,20 +10,25 @@ import {
 
 import { CardCollection } from "./CardCollection";
 
+export type UserRoleType = "admin" | "user";
+
 @Entity()
 export class User {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
+    @Column({ unique: true })
     username: string;
 
-    @Column()
+    @Column({ unique: true })
     email: string;
 
     @OneToOne((type) => CardCollection)
     @JoinColumn()
     collection: CardCollection;
+
+    @Column({ default: "user" })
+    role: UserRoleType;
 
     @Column()
     @CreateDateColumn()

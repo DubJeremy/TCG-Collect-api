@@ -3,7 +3,7 @@ export class User {
     username: string;
     email: string;
     password: string;
-    collections: number;
+    cardCollection: number;
     createAt: Date;
     updatedAt: Date;
 }

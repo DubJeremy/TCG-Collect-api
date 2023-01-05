@@ -1,4 +1,4 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Card {
@@ -8,9 +8,12 @@ export class Card {
     @Column()
     cardId: string;
 
-    @Column()
+    @Column({ default: false })
     wanted: boolean;
 
-    @Column()
+    @Column({ default: false })
     preferred: boolean;
+
+    @Column({ default: false })
+    duplicate: boolean;
 }
