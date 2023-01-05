@@ -1,18 +1,35 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm"
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    OneToOne,
+    JoinColumn,
+    CreateDateColumn,
+    UpdateDateColumn,
+} from "typeorm";
+
+import { CardCollection } from "./CardCollection";
 
 @Entity()
 export class User {
-
     @PrimaryGeneratedColumn()
-    id: number
+    id: number;
 
     @Column()
-    firstName: string
+    username: string;
 
     @Column()
-    lastName: string
+    email: string;
+
+    @OneToOne((type) => CardCollection)
+    @JoinColumn()
+    collection: CardCollection;
 
     @Column()
-    age: number
+    @CreateDateColumn()
+    createdAt: Date;
 
+    @Column()
+    @UpdateDateColumn()
+    updatedAt: Date;
 }
