@@ -1,8 +1,9 @@
 {
     "name": "collect-api",
     "version": "0.0.1",
-    "description": "Awesome project developed with TypeORM.",
+    "description": "Project developed with TypeORM.",
     "type": "commonjs",
+    "main": "index.js",
     "devDependencies": {
         "@types/node": "^16.11.10",
         "ts-node": "10.7.0",
@@ -17,10 +18,12 @@
         "jsonwebtoken": "^9.0.0",
         "pg": "^8.4.0",
         "reflect-metadata": "^0.1.13",
+        "source-map-loader": "^4.0.1",
+        "ts-loader": "^9.4.2",
         "typeorm": "0.3.11"
     },
     "scripts": {
-        "start": "ts-node src/index.ts",
-        "typeorm": "typeorm-ts-node-commonjs"
+        "typeorm": "typeorm-ts-node-commonjs",
+        "start": "tsc -p ./ && node build/src/index.js"
     }
 }
