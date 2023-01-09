@@ -9,11 +9,12 @@ import {
 } from "typeorm";
 
 import { CardCollection } from "./CardCollection";
+import { CardWanted } from "./CardWanted";
 
 export type UserRoleType = "admin" | "user";
 
 @Entity()
-export class User {
+export class Users {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -23,9 +24,17 @@ export class User {
     @Column({ unique: true })
     email: string;
 
-    @OneToOne((type) => CardCollection)
+    @OneToOne(() => CardCollection, {
+        cascade: true,
+    })
     @JoinColumn()
-    collection: CardCollection;
+    card_collection_id: CardCollection;
+
+    @OneToOne(() => CardWanted, {
+        cascade: true,
+    })
+    @JoinColumn()
+    card_wanted_id: CardWanted;
 
     @Column({ default: "user" })
     role: UserRoleType;

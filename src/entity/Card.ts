@@ -5,15 +5,12 @@ export class Card {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
-    cardId: string;
-
-    @Column({ default: false })
-    wanted: boolean;
+    @Column({ unique: true })
+    card_id: string;
 
     @Column({ default: false })
     preferred: boolean;
 
     @Column({ default: false })
-    duplicate: boolean;
+    to_exchange: boolean;
 }

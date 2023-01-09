@@ -5,7 +5,7 @@ let bcrypt = require("bcryptjs");
 let jwt = require("jsonwebtoken");
 
 import { AppDataSource } from "../data-source";
-import { User } from "../model/user.model";
+import { Users } from "../model/users.model";
 import { hashPassword } from "../middlewares/hashPassword";
 import { CardCollection } from "../entity/CardCollection";
 import { UserRepository } from "../repository/user.repository";
@@ -29,12 +29,12 @@ export default class AuthController {
                 const hashedPassword = await hashPassword(password);
                 // const hashedPassword = await bcrypt.hash(password, 10);
 
-                const user = new User();
+                const user = new Users();
                 console.log("555");
                 user.username = username;
                 user.email = email;
                 user.password = hashedPassword;
-                user.cardCollection = collection.id;
+                user.card_collection_id = collection.id;
                 console.log("666");
                 try {
                     console.log("777");
@@ -55,8 +55,8 @@ export default class AuthController {
     static login = async (req: Request, res: Response) => {
         const { username, password } = req.body;
 
-        const userRepository = AppDataSource.getRepository(User);
-        let user: User;
+        const userRepository = AppDataSource.getRepository(Users);
+        let user: Users;
         try {
             user = await userRepository.findOneOrFail({ where: { username } });
         } catch (error) {

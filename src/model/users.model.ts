@@ -1,9 +1,10 @@
-export class User {
+export class Users {
     id: number;
     username: string;
     email: string;
     password: string;
-    cardCollection: number;
+    card_collection_id: number;
+    card_wanted_id: number;
     createAt: Date;
     updatedAt: Date;
 }
