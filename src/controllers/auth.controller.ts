@@ -5,12 +5,14 @@ let bcrypt = require("bcryptjs");
 let jwt = require("jsonwebtoken");
 
 import { AppDataSource } from "../data-source";
-import { hashPassword } from "../middlewares/hashPassword";
+import { hashPassword } from "../middlewares/bcrypt";
 import CardCollectionController from "./cardCollection.controller";
 import { CardCollection } from "../entity/CardCollection";
 import { Users } from "../entity/Users";
 import CardWantedController from "./cardWanted.controller";
 import { CardWanted } from "../entity/CardWanted";
+import { checkIfUnencryptedPasswordIsValid } from "../middlewares/bcrypt";
+import { generateToken } from "../middlewares/jwt";
 
 export default class AuthController {
     static register = async (req: Request, res: Response) => {
@@ -48,12 +50,19 @@ export default class AuthController {
     };
 
     static login = async (req: Request, res: Response) => {
-        const { username, password } = req.body;
+        const { username, email, password } = req.body;
+        if (!((username && password) || (email && password))) {
+            res.status(400).send("missing information");
+            return;
+        }
 
         const userRepository = AppDataSource.getRepository(Users);
         let user: Users;
         try {
-            user = await userRepository.findOneOrFail({ where: { username } });
+            user = await userRepository.findOneOrFail({
+                where: [{ username }, { email }],
+            });
+            // SELECT * FROM users WHERE username = ? OR email = ?
         } catch (error) {
             res.status(401).send("Invalid username or password");
             return;
@@ -64,14 +73,15 @@ export default class AuthController {
             return;
         }
 
-        const token = jwt.sign(
-            { userId: user.id, username: user.username },
-            process.env.JWT_SECRET as string,
-            { expiresIn: "1h" }
-        );
+        const token = await generateToken({
+            userId: user.id,
+            username: user.username,
+            role: user.role,
+        });
 
         res.send({ token, user });
     };
+
     //TODO: update fonction
     // static update = async (req: Request, res: Response) => {
     //     const id = req.params.id;
