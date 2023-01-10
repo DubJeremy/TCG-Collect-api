@@ -3,7 +3,7 @@ import { Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Card } from "./Card";
 
 @Entity()
-export class CardCollection {
+export class CardWanted {
     @PrimaryGeneratedColumn()
     id: number;
 

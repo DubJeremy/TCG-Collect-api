@@ -8,7 +8,6 @@ const router = Router();
 
 router.use("/auth", authRoutes);
 // router.use("/user", userRoutes);
-// router.use("/collection", collectionRoutes);
 // router.use("/cards", cardsRoutes);
 
 router.use("*", (req, res) => res.sendStatus(404));

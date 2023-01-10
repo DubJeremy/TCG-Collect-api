@@ -1,7 +1,7 @@
 import { AppDataSource } from "../data-source";
-import { User } from "../model/user.model";
+import { Users } from "../model/users.model";
 
-export const UserRepository = AppDataSource.getRepository(User).extend({
+export const UserRepository = AppDataSource.getRepository(Users).extend({
     findByLogs(username: string, email: string) {
         return this.createQueryBuilder("user")
             .where("user.usename = :username", { username })

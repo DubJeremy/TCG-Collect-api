@@ -1,62 +1,57 @@
 import { Request, Response } from "express";
-import { getManager, getRepository } from "typeorm";
+import { validate } from "class-validator";
 
 let bcrypt = require("bcryptjs");
 let jwt = require("jsonwebtoken");
 
 import { AppDataSource } from "../data-source";
-import { User } from "../model/user.model";
 import { hashPassword } from "../middlewares/hashPassword";
+import CardCollectionController from "./cardCollection.controller";
 import { CardCollection } from "../entity/CardCollection";
-import { UserRepository } from "../repository/user.repository";
+import { Users } from "../entity/Users";
+import CardWantedController from "./cardWanted.controller";
+import { CardWanted } from "../entity/CardWanted";
 
 export default class AuthController {
     static register = async (req: Request, res: Response) => {
-        console.log("111");
-        const { username, email, password } = req.body;
+        await CardCollectionController.create(req, res);
+        await CardWantedController.create(req, res);
 
-        // const userRepository = getRepository(User);
-        // const userRepository = dataSource.getRepository(User);
-        // console.log("222", userRepository);
-        const userExist = await UserRepository.findByLogs(username, email);
-        // const userExist = await userRepository.findBy({ email: email });
-        console.log(userExist);
-        const collection = new CardCollection();
-        try {
-            console.log("333");
-            if (userExist) {
-                console.log("444");
-                const hashedPassword = await hashPassword(password);
-                // const hashedPassword = await bcrypt.hash(password, 10);
+        const collection = await AppDataSource.manager.find(CardCollection);
+        const wanted = await AppDataSource.manager.find(CardWanted);
 
-                const user = new User();
-                console.log("555");
-                user.username = username;
-                user.email = email;
-                user.password = hashedPassword;
-                user.cardCollection = collection.id;
-                console.log("666");
-                try {
-                    console.log("777");
-                    await UserRepository.save(user);
-                    res.status(201).send("User created");
-                } catch (error) {
-                    console.log("888");
-                    res.status(409).send(error.message);
-                    return;
-                }
-            }
-        } catch (error) {
-            res.status(409).send("User already exists");
+        let { username, password, email } = req.body;
+
+        let user = new Users();
+        user.username = username;
+        user.password = password;
+        user.email = email;
+        user.card_collection_id = collection[collection.length - 1];
+        user.card_wanted_id = wanted[wanted.length - 1];
+
+        const errors = await validate(user);
+        if (errors.length > 0) {
+            res.status(400).send(errors);
             return;
         }
+
+        user.password = hashPassword(password);
+
+        const userRepository = AppDataSource.getRepository(Users);
+        try {
+            await userRepository.save(user);
+        } catch (e) {
+            res.status(409).send(e.detail);
+            return;
+        }
+        res.status(201).send("User created");
     };
 
     static login = async (req: Request, res: Response) => {
         const { username, password } = req.body;
 
-        const userRepository = AppDataSource.getRepository(User);
-        let user: User;
+        const userRepository = AppDataSource.getRepository(Users);
+        let user: Users;
         try {
             user = await userRepository.findOneOrFail({ where: { username } });
         } catch (error) {
