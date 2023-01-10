@@ -7,6 +7,7 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
 } from "typeorm";
+import { IsEmail, IsNotEmpty, Length } from "class-validator";
 
 import { CardCollection } from "./CardCollection";
 import { CardWanted } from "./CardWanted";
@@ -19,10 +20,17 @@ export class Users {
     id: number;
 
     @Column({ unique: true })
+    @IsNotEmpty()
     username: string;
 
     @Column({ unique: true })
+    @IsEmail()
+    @IsNotEmpty()
     email: string;
+
+    @Column()
+    @Length(6, 100)
+    password: string;
 
     @OneToOne(() => CardCollection, {
         cascade: true,
