@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { validate } from "class-validator";
 
 import { AppDataSource } from "../data-source";
-import { refreshToken, verifyToken } from "../middlewares/jwt";
+import { verifyToken } from "../middlewares/jwt";
 import { Users } from "../entity/Users";
 
 export default class UsersController {
@@ -12,8 +12,7 @@ export default class UsersController {
             select: ["username"],
         });
 
-        const data = await verifyToken(req.cookies.token);
-        return refreshToken(res, data, users);
+        res.status(200).send(users);
     };
     static getOne = async (req: Request, res: Response) => {
         const data = await verifyToken(req.cookies.token);
@@ -27,7 +26,7 @@ export default class UsersController {
                 select: ["username"],
             });
 
-            return refreshToken(res, data, user);
+            res.status(200).send(user);
         } catch (error) {
             res.status(404).send("User not found");
         }
@@ -63,7 +62,7 @@ export default class UsersController {
                 return;
             }
 
-            return refreshToken(res, data, "User edited");
+            return res.status(200).send("User edited");
         } catch (error) {
             res.status(401).send("User not found");
         }

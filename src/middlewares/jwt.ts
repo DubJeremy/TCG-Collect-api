@@ -42,25 +42,20 @@ export const authorization = (req, res, next) => {
         req.userRole = data.role;
         req.username = data.username;
 
-        next();
-    } catch {
-        return res.sendStatus(403);
-    }
-};
-
-export const refreshToken = (res, data, message) => {
-    const newToken = generateToken({
-        userId: data.id,
-        username: data.username,
-        role: data.role,
-    });
-    res.clearCookie("token")
-        .cookie("token", newToken, {
+        const newToken = generateToken({
+            userId: data.id,
+            username: data.username,
+            role: data.role,
+        });
+        res.clearCookie("token").cookie("token", newToken, {
             path: "/",
             secure: true,
             httpOnly: true,
             maxAge: 1000 * 60 * 60 * 2,
-        })
-        .status(200)
-        .send(message);
+        });
+
+        next();
+    } catch {
+        return res.sendStatus(403);
+    }
 };
