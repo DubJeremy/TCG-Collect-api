@@ -62,5 +62,5 @@ export const refreshToken = (res, data, message) => {
             maxAge: 1000 * 60 * 60 * 2,
         })
         .status(200)
-        .send(`${message}`);
+        .send(message);
 };

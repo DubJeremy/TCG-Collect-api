@@ -6,6 +6,32 @@ import { refreshToken, verifyToken } from "../middlewares/jwt";
 import { Users } from "../entity/Users";
 
 export default class UsersController {
+    static listAll = async (req: Request, res: Response) => {
+        const userRepository = AppDataSource.getRepository(Users);
+        const users = await userRepository.find({
+            select: ["username"],
+        });
+
+        const data = await verifyToken(req.cookies.token);
+        return refreshToken(res, data, users);
+    };
+    static getOne = async (req: Request, res: Response) => {
+        const data = await verifyToken(req.cookies.token);
+        const id = data.userId;
+
+        const userRepository = AppDataSource.getRepository(Users);
+
+        try {
+            const user = await userRepository.findOneOrFail({
+                where: { id },
+                select: ["username"],
+            });
+
+            return refreshToken(res, data, user);
+        } catch (error) {
+            res.status(404).send("User not found");
+        }
+    };
     static update = async (req: Request, res: Response) => {
         const data = await verifyToken(req.cookies.token);
         const id = data.userId;
