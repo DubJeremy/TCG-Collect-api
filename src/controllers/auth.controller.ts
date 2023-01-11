@@ -1,17 +1,14 @@
 import { Request, Response } from "express";
 import { validate } from "class-validator";
-
 let bcrypt = require("bcryptjs");
-let jwt = require("jsonwebtoken");
 
 import { AppDataSource } from "../data-source";
-import { hashPassword } from "../middlewares/bcrypt";
+import { hashPassword } from "../middlewares/hashPassword";
 import CardCollectionController from "./cardCollection.controller";
 import { CardCollection } from "../entity/CardCollection";
 import { Users } from "../entity/Users";
 import CardWantedController from "./cardWanted.controller";
 import { CardWanted } from "../entity/CardWanted";
-import { checkIfUnencryptedPasswordIsValid } from "../middlewares/bcrypt";
 import { generateToken } from "../middlewares/jwt";
 
 export default class AuthController {
@@ -79,30 +76,49 @@ export default class AuthController {
             role: user.role,
         });
 
-        res.send({ token, user });
+        res.cookie("token", token, {
+            path: "/",
+            secure: true,
+            // secure: process.env.NODE_ENV === "production",
+            httpOnly: true, //le httpOnly n'est pas accessible via du code JS, ça limite un peu les injection XSS (mais ce n'est pas infaillible)
+            maxAge: 1000 * 60 * 60 * 2, //2 heures
+        }).send(`${token} "logged"`);
     };
 
-    //TODO: update fonction
-    // static update = async (req: Request, res: Response) => {
-    //     const id = req.params.id;
-
-    //     const { username, password } = req.body;
-
-    //     const hashedPassword = await bcrypt.hash(password, 10);
-
-    //     const entityManager = getManager();
-
-    //     let user: User;
+    static logout(req: Request, res: Response) {
+        return res
+            .clearCookie("token")
+            .send("logout")
+            .status(200)
+            .send("logged out");
+    }
+    //TODO : reset password
+    // static async resetPassword(req, res) {
     //     try {
-    //         user = await entityManager.findOneOrFail(User, id);
-    //         user.username = username;
-    //         user.password = hashedPassword;
-    //         await entityManager.save(user);
-    //     } catch (error) {
-    //         res.status(404).send("User not found");
-    //         return;
-    //     }
+    //         const { email } = req.body;
 
-    //     res.send(user);
-    // };
+    //         const user = await User.findOne({ email });
+
+    //         if (user) {
+    //             let token = await ResetToken.findOne({ user: user._id });
+    //             if (token) {
+    //                 await token.deleteOne();
+    //             }
+    //             let resetToken = crypto.randomBytes(32).toString('hex');
+    //             const hash = await hashPassword(resetToken);
+
+    //             await new ResetToken({
+    //                 user: user._id,
+    //                 token: hash,
+    //                 createdAt: Date.now(),
+    //             }).save();
+
+    //             await resetLink(user.email, req.headers['x-forwarded-for'] || req.socket.remoteAddress, hash);
+    //         }
+    //     } catch (e) {
+    //         console.error(e);
+    //     } finally {
+    //         return res.sendStatus(200);
+    //     }
+    // }
 }

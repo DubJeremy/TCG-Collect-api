@@ -10,23 +10,40 @@ export function verifyToken(token) {
     return jwt.verify(token, config.jwtSecret);
 }
 
-export const checkJwt = (req: Request, res: Response, next: NextFunction) => {
-    const token = <string>req.headers["auth"];
-    let jwtPayload;
+// export const checkJwt = (req: Request, res: Response, next: NextFunction) => {
+//     const token = <string>req.headers["auth"];
+//     let jwtPayload;
 
-    try {
-        jwtPayload = <any>jwt.verify(token, config.jwtSecret);
-        res.locals.jwtPayload = jwtPayload;
-    } catch (error) {
-        res.status(401).send();
-        return;
+//     try {
+//         jwtPayload = <any>jwt.verify(token, config.jwtSecret);
+//         res.locals.jwtPayload = jwtPayload;
+//     } catch (error) {
+//         res.status(401).send();
+//         return;
+//     }
+
+//     const { userId, username, role } = jwtPayload;
+//     const newToken = jwt.sign({ userId, username, role }, config.jwtSecret, {
+//         expiresIn: "7d",
+//     });
+//     res.setHeader("token", newToken);
+
+//     next();
+// };
+
+export const authorization = (req, res, next) => {
+    const token = req.cookies.token;
+    if (!token) {
+        return res.sendStatus(403);
     }
-
-    const { userId, username } = jwtPayload;
-    const newToken = jwt.sign({ userId, username }, config.jwtSecret, {
-        expiresIn: "7d",
-    });
-    res.setHeader("token", newToken);
-
-    next();
+    try {
+        const data = jwt.verify(token, config.jwtSecret);
+        req.userId = data.id;
+        req.userRole = data.role;
+        req.username = data.username;
+        console.log(data, "$$$$$$$");
+        return next();
+    } catch {
+        return res.sendStatus(403);
+    }
 };
