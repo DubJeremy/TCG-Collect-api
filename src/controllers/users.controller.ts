@@ -8,13 +8,13 @@ import { Users } from "../entity/Users";
 export default class UsersController {
     static update = async (req: Request, res: Response) => {
         const data = await verifyToken(req.cookies.token);
+        const id = data.userId;
 
         const { username, email } = req.body;
 
         const userRepository = AppDataSource.getRepository(Users);
 
         let user: Users;
-        const id = data.userId;
         try {
             user = await userRepository.findOneOrFail({ where: { id } });
             if (username) {
@@ -41,5 +41,21 @@ export default class UsersController {
         } catch (error) {
             res.status(401).send("User not found");
         }
+    };
+    static delete = async (req: Request, res: Response) => {
+        const data = await verifyToken(req.cookies.token);
+        const id = data.userId;
+
+        const userRepository = AppDataSource.getRepository(Users);
+        let user: Users;
+        try {
+            user = await userRepository.findOneOrFail({ where: { id } });
+        } catch (error) {
+            res.status(404).send("User not found");
+            return;
+        }
+        userRepository.delete(id);
+
+        res.clearCookie("token").status(200).send("User deleted");
     };
 }
