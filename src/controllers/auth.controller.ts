@@ -13,15 +13,35 @@ import { generateToken } from "../middlewares/jwt";
 
 export default class AuthController {
     static register = async (req: Request, res: Response) => {
+        let { username, password, email } = req.body;
+        const userRepository = AppDataSource.getRepository(Users);
+
+        try {
+            const usernameCheck = await userRepository.findOneOrFail({
+                where: [{ username }],
+            });
+
+            if (usernameCheck) {
+                res.send("username already exists");
+                return;
+            }
+        } catch {
+            const emailCheck = await userRepository.findOneOrFail({
+                where: [{ email }],
+            });
+            if (emailCheck) {
+                res.send("email already exists");
+                return;
+            }
+        }
+
         await CardCollectionController.create(req, res);
         await CardWantedController.create(req, res);
 
         const collection = await AppDataSource.manager.find(CardCollection);
         const wanted = await AppDataSource.manager.find(CardWanted);
 
-        let { username, password, email } = req.body;
-
-        let user = new Users();
+        let user: Users = new Users();
         user.username = username;
         user.password = password;
         user.email = email;
@@ -36,7 +56,6 @@ export default class AuthController {
 
         user.password = hashPassword(password);
 
-        const userRepository = AppDataSource.getRepository(Users);
         try {
             await userRepository.save(user);
         } catch (e) {
