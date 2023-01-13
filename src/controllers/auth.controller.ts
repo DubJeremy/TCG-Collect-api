@@ -42,7 +42,6 @@ export default class AuthController {
         user.email = email;
         user.collection = collection;
         user.wanted = wanted;
-        console.log(user.collection, user.wanted);
 
         const errors = await validate(user);
         if (errors.length > 0) {
