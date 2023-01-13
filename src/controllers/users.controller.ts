@@ -4,8 +4,8 @@ import { validate } from "class-validator";
 import { AppDataSource } from "../data-source";
 import { verifyToken } from "../middlewares/jwt";
 import { Users } from "../entity/Users";
-import { CardCollection } from "../entity/CardCollection";
-import { CardWanted } from "../entity/CardWanted";
+import { Collection } from "../entity/Collection";
+import { Wanted } from "../entity/Wanted";
 
 export default class UsersController {
     static listAll = async (req: Request, res: Response) => {
@@ -73,8 +73,8 @@ export default class UsersController {
         const data = await verifyToken(req.cookies.token);
         const id = data.userId;
         let user: Users;
-        let collection: CardCollection;
-        let wanted: CardWanted;
+        let collection: Collection;
+        let wanted: Wanted;
 
         const userRepository = AppDataSource.getRepository(Users);
         try {
@@ -84,8 +84,7 @@ export default class UsersController {
             return;
         }
 
-        const collectionRepository =
-            AppDataSource.getRepository(CardCollection);
+        const collectionRepository = AppDataSource.getRepository(Collection);
         try {
             collection = await collectionRepository.findOne({
                 where: { id: user.collection.id },
@@ -95,7 +94,7 @@ export default class UsersController {
             return;
         }
 
-        const wantedRepository = AppDataSource.getRepository(CardWanted);
+        const wantedRepository = AppDataSource.getRepository(Wanted);
         try {
             wanted = await wantedRepository.findOne({
                 where: { id: user.wanted.id },

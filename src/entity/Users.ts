@@ -9,8 +9,8 @@ import {
 } from "typeorm";
 import { IsEmail, IsNotEmpty, Length } from "class-validator";
 
-import { CardCollection } from "./CardCollection";
-import { CardWanted } from "./CardWanted";
+import { Collection } from "./Collection";
+import { Wanted } from "./Wanted";
 
 export type UserRoleType = "admin" | "user";
 
@@ -32,20 +32,20 @@ export class Users {
     @Length(6, 100)
     password: string;
 
-    @OneToOne(() => CardCollection, (cardCollection) => cardCollection.user, {
+    @OneToOne(() => Collection, (collection) => collection.user, {
         eager: true,
         onDelete: "CASCADE",
     })
     @JoinColumn()
-    collection: CardCollection;
+    collection: Collection;
 
-    @OneToOne(() => CardWanted, (cardWanted) => cardWanted.user, {
+    @OneToOne(() => Wanted, (wanted) => wanted.user, {
         eager: true,
         cascade: true,
         onDelete: "CASCADE",
     })
     @JoinColumn()
-    wanted: CardWanted;
+    wanted: Wanted;
 
     @Column({ default: "user" })
     role: UserRoleType;

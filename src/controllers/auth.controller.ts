@@ -4,18 +4,17 @@ let bcrypt = require("bcryptjs");
 
 import { AppDataSource } from "../data-source";
 import { hashPassword } from "../middlewares/hashPassword";
-import { CardCollection } from "../entity/CardCollection";
+import { Collection } from "../entity/Collection";
 import { Users } from "../entity/Users";
-import { CardWanted } from "../entity/CardWanted";
+import { Wanted } from "../entity/Wanted";
 import { generateToken } from "../middlewares/jwt";
 
 export default class AuthController {
     static register = async (req: Request, res: Response) => {
         let { username, password, email } = req.body;
         const userRepository = AppDataSource.getRepository(Users);
-        const cardCollectionRepository =
-            AppDataSource.getRepository(CardCollection);
-        const cardWantedRepository = AppDataSource.getRepository(CardWanted);
+        const collectionRepository = AppDataSource.getRepository(Collection);
+        const wantedRepository = AppDataSource.getRepository(Wanted);
 
         const usernameCheck = await userRepository.find({
             where: { username },
@@ -32,10 +31,10 @@ export default class AuthController {
             return;
         }
 
-        let collection = new CardCollection();
-        let wanted = new CardWanted();
-        await cardCollectionRepository.save(collection);
-        await cardWantedRepository.save(wanted);
+        let collection = new Collection();
+        let wanted = new Wanted();
+        await collectionRepository.save(collection);
+        await wantedRepository.save(wanted);
 
         let user: Users = new Users();
         user.username = username;
@@ -62,8 +61,8 @@ export default class AuthController {
         collection.user = user;
         wanted.user = user;
         try {
-            await cardCollectionRepository.save(collection);
-            await cardWantedRepository.save(wanted);
+            await collectionRepository.save(collection);
+            await wantedRepository.save(wanted);
         } catch (e) {
             res.status(409).send(e);
             return;
@@ -111,7 +110,7 @@ export default class AuthController {
         }).send(`${token} "logged"`);
     };
 
-    static logout(req: Request, res: Response) {
+    static logout(res: Response) {
         return res
             .clearCookie("token")
             .send("logout")

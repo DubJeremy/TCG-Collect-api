@@ -11,7 +11,7 @@ import { Card } from "./Card";
 import { Users } from "./Users";
 
 @Entity()
-export class CardWanted {
+export class Wanted {
     @PrimaryGeneratedColumn()
     id: number;
 

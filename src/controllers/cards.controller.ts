@@ -6,27 +6,29 @@ import { Users } from "../entity/Users";
 
 export default class CardController {
     static addToCollection = async (req: Request, res: Response) => {
-        let { card_id } = req.body;
+        let { cardTCGdex } = req.body;
 
         const cardRepository = AppDataSource.getRepository(Card);
         let card: Card;
         try {
-            card = await cardRepository.findOneOrFail({ where: { card_id } });
+            card = await cardRepository.findOneOrFail({
+                where: { cardTCGdex },
+            });
         } catch {
             card = new Card();
-            card.card_id = card_id;
+            card.cardTCGdex = cardTCGdex;
 
             await cardRepository.save(card);
         }
     };
     static getById = async (req: Request, res: Response) => {
-        let { card_id } = req.body;
+        let { cardTCGdex } = req.body;
 
         const cardRepository = AppDataSource.getRepository(Card);
 
         try {
             const card = await cardRepository.findOneOrFail({
-                where: { card_id },
+                where: { cardTCGdex },
             });
 
             res.status(200).send(card);
@@ -35,21 +37,23 @@ export default class CardController {
         }
     };
     static edit = async (req: Request, res: Response) => {
-        let { card_id, wanted, preferred, to_exchange } = req.body;
+        let { cardTCGdex, wanted, preferred, to_exchange } = req.body;
     };
     // TODO delete for admin
     static delete = async (req: Request, res: Response) => {
-        let { card_id } = req.body;
+        let { cardTCGdex } = req.body;
 
         const cardRepository = AppDataSource.getRepository(Card);
         let card: Card;
         try {
-            card = await cardRepository.findOneOrFail({ where: { card_id } });
+            card = await cardRepository.findOneOrFail({
+                where: { cardTCGdex },
+            });
         } catch (error) {
             res.status(404).send("Card not found");
             return;
         }
-        cardRepository.delete(card_id);
+        cardRepository.delete(cardTCGdex);
 
         res.status(200).send("Card deleted");
     };
