@@ -4,10 +4,8 @@ let bcrypt = require("bcryptjs");
 
 import { AppDataSource } from "../data-source";
 import { hashPassword } from "../middlewares/hashPassword";
-import CardCollectionController from "./cardCollection.controller";
 import { CardCollection } from "../entity/CardCollection";
 import { Users } from "../entity/Users";
-import CardWantedController from "./cardWanted.controller";
 import { CardWanted } from "../entity/CardWanted";
 import { generateToken } from "../middlewares/jwt";
 
@@ -15,38 +13,37 @@ export default class AuthController {
     static register = async (req: Request, res: Response) => {
         let { username, password, email } = req.body;
         const userRepository = AppDataSource.getRepository(Users);
+        const cardCollectionRepository =
+            AppDataSource.getRepository(CardCollection);
+        const cardWantedRepository = AppDataSource.getRepository(CardWanted);
 
-        try {
-            const usernameCheck = await userRepository.findOneOrFail({
-                where: [{ username }],
-            });
-
-            if (usernameCheck) {
-                res.send("username already exists");
-                return;
-            }
-        } catch {
-            const emailCheck = await userRepository.findOneOrFail({
-                where: [{ email }],
-            });
-            if (emailCheck) {
-                res.send("email already exists");
-                return;
-            }
+        const usernameCheck = await userRepository.find({
+            where: { username },
+        });
+        if (usernameCheck.length > 0) {
+            res.send("username already exists");
+            return;
+        }
+        const emailCheck = await userRepository.find({
+            where: { email },
+        });
+        if (emailCheck.length > 0) {
+            res.send("email already exists");
+            return;
         }
 
-        await CardCollectionController.create(req, res);
-        await CardWantedController.create(req, res);
-
-        const collection = await AppDataSource.manager.find(CardCollection);
-        const wanted = await AppDataSource.manager.find(CardWanted);
+        let collection = new CardCollection();
+        let wanted = new CardWanted();
+        await cardCollectionRepository.save(collection);
+        await cardWantedRepository.save(wanted);
 
         let user: Users = new Users();
         user.username = username;
         user.password = password;
         user.email = email;
-        user.card_collection_id = collection[collection.length - 1];
-        user.card_wanted_id = wanted[wanted.length - 1];
+        user.collection = collection;
+        user.wanted = wanted;
+        console.log(user.collection, user.wanted);
 
         const errors = await validate(user);
         if (errors.length > 0) {
@@ -55,13 +52,23 @@ export default class AuthController {
         }
 
         user.password = hashPassword(password);
-
         try {
             await userRepository.save(user);
         } catch (e) {
-            res.status(409).send(e.detail);
+            res.status(409).send(e);
             return;
         }
+
+        collection.user = user;
+        wanted.user = user;
+        try {
+            await cardCollectionRepository.save(collection);
+            await cardWantedRepository.save(wanted);
+        } catch (e) {
+            res.status(409).send(e);
+            return;
+        }
+
         res.status(201).send("User created");
     };
 

@@ -1,16 +1,7 @@
-import { Request, Response } from "express";
+import { Response } from "express";
+import { FindOperator } from "typeorm";
+
 import { AppDataSource } from "../data-source";
 import { CardWanted } from "../entity/CardWanted";
 
-export default class CardWantedController {
-    static create = async (req: Request, res: Response) => {
-        let cardWanted = new CardWanted();
-        const cardWantedRepository = AppDataSource.getRepository(CardWanted);
-        try {
-            await cardWantedRepository.save(cardWanted);
-        } catch (e) {
-            return res.send(e);
-        }
-        return;
-    };
-}
+export default class CardWantedController {}

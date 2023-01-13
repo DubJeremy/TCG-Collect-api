@@ -4,6 +4,8 @@ import { validate } from "class-validator";
 import { AppDataSource } from "../data-source";
 import { verifyToken } from "../middlewares/jwt";
 import { Users } from "../entity/Users";
+import { CardCollection } from "../entity/CardCollection";
+import { CardWanted } from "../entity/CardWanted";
 
 export default class UsersController {
     static listAll = async (req: Request, res: Response) => {
@@ -70,16 +72,41 @@ export default class UsersController {
     static delete = async (req: Request, res: Response) => {
         const data = await verifyToken(req.cookies.token);
         const id = data.userId;
+        let user: Users;
+        let collection: CardCollection;
+        let wanted: CardWanted;
 
         const userRepository = AppDataSource.getRepository(Users);
-        let user: Users;
         try {
-            user = await userRepository.findOneOrFail({ where: { id } });
+            user = await userRepository.findOne({ where: { id: id } });
         } catch (error) {
             res.status(404).send("User not found");
             return;
         }
-        userRepository.delete(id);
+
+        const collectionRepository =
+            AppDataSource.getRepository(CardCollection);
+        try {
+            collection = await collectionRepository.findOne({
+                where: { id: user.collection.id },
+            });
+        } catch (error) {
+            res.status(404).send(error);
+            return;
+        }
+
+        const wantedRepository = AppDataSource.getRepository(CardWanted);
+        try {
+            wanted = await wantedRepository.findOne({
+                where: { id: user.wanted.id },
+            });
+        } catch (error) {
+            res.status(404).send(error);
+            return;
+        }
+
+        await collectionRepository.remove(collection);
+        await wantedRepository.remove(wanted);
 
         res.clearCookie("token").status(200).send("User deleted");
     };

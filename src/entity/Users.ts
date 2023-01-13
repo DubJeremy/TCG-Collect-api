@@ -32,17 +32,20 @@ export class Users {
     @Length(6, 100)
     password: string;
 
-    @OneToOne(() => CardCollection, {
-        cascade: true,
+    @OneToOne(() => CardCollection, (cardCollection) => cardCollection.user, {
+        eager: true,
+        onDelete: "CASCADE",
     })
     @JoinColumn()
-    card_collection_id: CardCollection;
+    collection: CardCollection;
 
-    @OneToOne(() => CardWanted, {
+    @OneToOne(() => CardWanted, (cardWanted) => cardWanted.user, {
+        eager: true,
         cascade: true,
+        onDelete: "CASCADE",
     })
     @JoinColumn()
-    card_wanted_id: CardWanted;
+    wanted: CardWanted;
 
     @Column({ default: "user" })
     role: UserRoleType;
@@ -54,4 +57,5 @@ export class Users {
     @Column()
     @UpdateDateColumn()
     updatedAt: Date;
+    length: number;
 }
