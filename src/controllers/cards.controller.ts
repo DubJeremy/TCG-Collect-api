@@ -39,12 +39,30 @@ export default class CardController {
             },
         });
 
-        const cardExists = collection.cards.some(
-            (card) => card.cardTCGdex === cardTCGdex
+        let cardExists = collection.cards.some(
+            (card) => card.cardTCGdex !== cardTCGdex
         );
         if (cardExists) {
             res.send("Card already in the collection");
             return;
+        }
+
+        const wantedRepository = AppDataSource.getRepository(Wanted);
+        let wanted = await wantedRepository.findOneOrFail({
+            where: { id: user.wanted.id },
+            relations: {
+                cards: true,
+            },
+        });
+
+        cardExists = wanted.cards.some(
+            (card) => card.cardTCGdex === cardTCGdex
+        );
+        if (cardExists) {
+            wanted.cards = wanted.cards.filter((card) => {
+                return card.cardTCGdex !== cardTCGdex;
+            });
+            await wantedRepository.save(wanted);
         }
 
         collection.cards.push(card);
