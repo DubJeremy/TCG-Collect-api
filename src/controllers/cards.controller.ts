@@ -144,9 +144,18 @@ export default class CardController {
             res.status(404).send("Card not found");
         }
     };
-
     static update = async (req: Request, res: Response) => {
+        const data = await verifyToken(req.cookies.token);
+        const id = data.userId;
         let { cardTCGdex, preferred, to_exchange } = req.body;
+        const userRepository = AppDataSource.getRepository(Users);
+
+        let user: Users;
+        try {
+            user = await userRepository.findOneOrFail({ where: { id } });
+        } catch {
+            res.status(401).send("User not found");
+        }
     };
     static removeFromCollection = async (req: Request, res: Response) => {
         let { cardTCGdex } = req.body;

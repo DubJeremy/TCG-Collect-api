@@ -35,38 +35,36 @@ export default class UsersController {
     static update = async (req: Request, res: Response) => {
         const data = await verifyToken(req.cookies.token);
         const id = data.userId;
-
         const { username, email } = req.body;
-
         const userRepository = AppDataSource.getRepository(Users);
 
         let user: Users;
         try {
             user = await userRepository.findOneOrFail({ where: { id } });
-            if (username) {
-                user.username = username;
-            }
-            if (email) {
-                user.email = email;
-            }
-
-            const errors = await validate(user);
-            if (errors.length > 0) {
-                res.status(400).send(errors);
-                return;
-            }
-
-            try {
-                await userRepository.save(user);
-            } catch (e) {
-                res.status(409).send(e.message);
-                return;
-            }
-
-            return res.status(200).send("User edited");
-        } catch (error) {
+        } catch {
             res.status(401).send("User not found");
         }
+        if (username) {
+            user.username = username;
+        }
+        if (email) {
+            user.email = email;
+        }
+
+        const errors = await validate(user);
+        if (errors.length > 0) {
+            res.status(400).send(errors);
+            return;
+        }
+
+        try {
+            await userRepository.save(user);
+        } catch (e) {
+            res.status(409).send(e.message);
+            return;
+        }
+
+        return res.status(200).send("User edited");
     };
     static delete = async (req: Request, res: Response) => {
         const data = await verifyToken(req.cookies.token);
