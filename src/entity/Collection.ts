@@ -15,7 +15,7 @@ export class Collection {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToMany(() => Card)
+    @ManyToMany(() => Card, { cascade: true })
     @JoinTable()
     cards: Card[];
 

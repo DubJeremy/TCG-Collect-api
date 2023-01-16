@@ -9,7 +9,9 @@ const router = Router();
 
 router.use("/auth", authRoutes);
 router.use("/user", authorization, usersRoutes);
-router.use("/cards", authorization, cardsRoutes);
+router.use("/cards", cardsRoutes);
+// TODO remettre authorization
+// router.use("/cards", authorization, cardsRoutes);
 
 router.use("*", (req, res) => res.sendStatus(404));
 
