@@ -19,7 +19,6 @@ export default class UsersController {
     static getOne = async (req: Request, res: Response) => {
         const data = await verifyToken(req.cookies.token);
         const id = data.userId;
-
         const userRepository = AppDataSource.getRepository(Users);
 
         try {

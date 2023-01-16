@@ -4,6 +4,7 @@ import { AppDataSource } from "../data-source";
 import { Card } from "../entity/Card";
 import { Collection } from "../entity/Collection";
 import { Users } from "../entity/Users";
+import { Wanted } from "../entity/Wanted";
 import { verifyToken } from "../middlewares/jwt";
 
 export default class CardController {
@@ -42,7 +43,7 @@ export default class CardController {
             (card) => card.cardTCGdex === cardTCGdex
         );
         if (cardExists) {
-            res.send("card already in the collection");
+            res.send("Card already in the collection");
             return;
         }
 
@@ -51,7 +52,67 @@ export default class CardController {
 
         res.status(200).send("Card added to the collection");
     };
-    static getById = async (req: Request, res: Response) => {
+    static addToWanted = async (req: Request, res: Response) => {
+        let { cardTCGdex } = req.body;
+        const data = await verifyToken(req.cookies.token);
+        const userId = data.userId;
+
+        const userRepository = AppDataSource.getRepository(Users);
+        const user = await userRepository.findOneOrFail({
+            where: { id: userId },
+            select: ["wanted"],
+        });
+
+        const cardRepository = AppDataSource.getRepository(Card);
+        let card = await cardRepository.findOne({
+            where: { cardTCGdex },
+        });
+
+        if (!card) {
+            card = new Card();
+            card.cardTCGdex = cardTCGdex;
+
+            await cardRepository.save(card);
+        }
+
+        const wantedRepository = AppDataSource.getRepository(Wanted);
+        let wanted = await wantedRepository.findOneOrFail({
+            where: { id: user.wanted.id },
+            relations: {
+                cards: true,
+            },
+        });
+
+        let cardExists = wanted.cards.some(
+            (card) => card.cardTCGdex === cardTCGdex
+        );
+        if (cardExists) {
+            res.send("Card already wanted");
+            return;
+        }
+
+        const collectionRepository = AppDataSource.getRepository(Collection);
+        let collection = await collectionRepository.findOneOrFail({
+            where: { id: user.collection.id },
+            relations: {
+                cards: true,
+            },
+        });
+
+        cardExists = collection.cards.some(
+            (card) => card.cardTCGdex === cardTCGdex
+        );
+        if (cardExists) {
+            res.send("Card already in your collection");
+            return;
+        }
+
+        wanted.cards.push(card);
+        await wantedRepository.save(wanted);
+
+        res.status(200).send("Card added to the wanted list");
+    };
+    static getOne = async (req: Request, res: Response) => {
         let { cardTCGdex } = req.body;
 
         const cardRepository = AppDataSource.getRepository(Card);
@@ -65,8 +126,8 @@ export default class CardController {
             res.status(404).send("Card not found");
         }
     };
-    static edit = async (req: Request, res: Response) => {
-        let { cardTCGdex, wanted, preferred, to_exchange } = req.body;
+    static update = async (req: Request, res: Response) => {
+        let { cardTCGdex, preferred, to_exchange } = req.body;
     };
     // TODO delete for admin
     static delete = async (req: Request, res: Response) => {

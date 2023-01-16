@@ -34,6 +34,7 @@ export class Users {
 
     @OneToOne(() => Collection, (collection) => collection.user, {
         eager: true,
+        cascade: true,
         onDelete: "CASCADE",
     })
     @JoinColumn()
