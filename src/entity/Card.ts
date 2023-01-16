@@ -1,4 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import {
+    Column,
+    Entity,
+    JoinTable,
+    OneToMany,
+    PrimaryGeneratedColumn,
+} from "typeorm";
+import { CollectionCards } from "./CollectionCards";
 
 @Entity()
 export class Card {
@@ -8,9 +15,11 @@ export class Card {
     @Column({ unique: true })
     cardTCGdex: string;
 
-    @Column({ default: false })
-    preferred: boolean;
-
-    @Column({ default: false })
-    to_exchange: boolean;
+    @OneToMany(() => CollectionCards, (collectionCard) => collectionCard.card, {
+        eager: true,
+        cascade: true,
+        onDelete: "CASCADE",
+    })
+    @JoinTable()
+    collections: CollectionCards[];
 }
