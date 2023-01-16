@@ -6,6 +6,8 @@ const router = Router();
 
 router.post("/addToCollection", CardController.addToCollection);
 router.post("/addToWanted", CardController.addToWanted);
+router.put("/removeFromCollection", CardController.removeFromCollection);
+router.put("/removeFromWanted", CardController.removeFromWanted);
 router.get("/getOne", CardController.getOne);
 router.patch("/update", CardController.update);
 router.delete("/delete", CardController.delete);

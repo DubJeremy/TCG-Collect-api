@@ -144,9 +144,88 @@ export default class CardController {
             res.status(404).send("Card not found");
         }
     };
+
     static update = async (req: Request, res: Response) => {
         let { cardTCGdex, preferred, to_exchange } = req.body;
     };
+    static removeFromCollection = async (req: Request, res: Response) => {
+        let { cardTCGdex } = req.body;
+        const data = await verifyToken(req.cookies.token);
+        const userId = data.userId;
+
+        const userRepository = AppDataSource.getRepository(Users);
+        const user = await userRepository.findOneOrFail({
+            where: { id: userId },
+            select: ["collection"],
+        });
+
+        const collectionRepository = AppDataSource.getRepository(Collection);
+        let collection = await collectionRepository.findOneOrFail({
+            where: { id: user.collection.id },
+            relations: {
+                cards: true,
+            },
+        });
+
+        const cardExists = collection.cards.some(
+            (card) => card.cardTCGdex === cardTCGdex
+        );
+        if (!cardExists) {
+            res.status(409).send("This card is not in the collection");
+            return;
+        }
+
+        collection.cards = collection.cards.filter((card) => {
+            return card.cardTCGdex !== cardTCGdex;
+        });
+        try {
+            await collectionRepository.save(collection);
+        } catch (e) {
+            res.status(409).send(e);
+            return;
+        }
+
+        res.status(200).send("Card remove from the collection");
+    };
+    static removeFromWanted = async (req: Request, res: Response) => {
+        let { cardTCGdex } = req.body;
+        const data = await verifyToken(req.cookies.token);
+        const userId = data.userId;
+
+        const userRepository = AppDataSource.getRepository(Users);
+        const user = await userRepository.findOneOrFail({
+            where: { id: userId },
+            select: ["wanted"],
+        });
+
+        const wantedRepository = AppDataSource.getRepository(Wanted);
+        let wanted = await wantedRepository.findOneOrFail({
+            where: { id: user.wanted.id },
+            relations: {
+                cards: true,
+            },
+        });
+
+        const cardExists = wanted.cards.some(
+            (card) => card.cardTCGdex === cardTCGdex
+        );
+        if (!cardExists) {
+            res.status(409).send("This card is not in the Wanted list");
+            return;
+        }
+
+        wanted.cards = wanted.cards.filter((card) => {
+            return card.cardTCGdex !== cardTCGdex;
+        });
+        try {
+            await wantedRepository.save(wanted);
+        } catch (e) {
+            res.status(409).send(e);
+            return;
+        }
+        res.status(200).send("Card remove from the wanted list");
+    };
+
     // TODO delete for admin
     static delete = async (req: Request, res: Response) => {
         let { cardTCGdex } = req.body;
