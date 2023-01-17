@@ -1,7 +1,7 @@
-import { Card } from "./card.model";
+import { CollectionCards } from "./collectionCards.model";
 
 export class Collection {
     id: number;
-    cards: Card[];
+    cards: CollectionCards[];
     user: number;
 }

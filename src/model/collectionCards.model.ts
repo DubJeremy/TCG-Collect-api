@@ -1,4 +1,4 @@
-export class CollectionCard {
+export class CollectionCards {
     id: number;
     collection: number;
     card: number;

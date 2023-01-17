@@ -32,6 +32,7 @@ export default class AuthController {
         }
 
         let collection = new Collection();
+        console.log(collection.cards);
         let wanted = new Wanted();
         await collectionRepository.save(collection);
         await wantedRepository.save(wanted);

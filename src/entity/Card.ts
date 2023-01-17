@@ -5,6 +5,7 @@ import {
     OneToMany,
     PrimaryGeneratedColumn,
 } from "typeorm";
+
 import { CollectionCards } from "./CollectionCards";
 
 @Entity()
@@ -18,7 +19,6 @@ export class Card {
     @OneToMany(() => CollectionCards, (collectionCard) => collectionCard.card, {
         eager: true,
         cascade: true,
-        onDelete: "CASCADE",
     })
     @JoinTable()
     collections: CollectionCards[];

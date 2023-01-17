@@ -1,7 +1,7 @@
-import { Collection } from "./collection.model";
+import { CollectionCards } from "./collectionCards.model";
 
 export class Card {
     id: number;
     cardTCGdex: string;
-    collections: Collection[];
+    collections: CollectionCards[];
 }
