@@ -87,54 +87,58 @@ export default class CardController {
         res.status(200).send("Card added to the collection");
     };
     static addToWanted = async (req: Request, res: Response) => {
-        //     let { cardTCGdex } = req.body;
-        //     const data = await verifyToken(req.cookies.token);
-        //     const userId = data.userId;
-        //     const userRepository = AppDataSource.getRepository(Users);
-        //     const user = await userRepository.findOneOrFail({
-        //         where: { id: userId },
-        //         select: ["wanted"],
-        //     });
-        //     const cardRepository = AppDataSource.getRepository(Card);
-        //     let card = await cardRepository.findOne({
-        //         where: { cardTCGdex },
-        //     });
-        //     if (!card) {
-        //         card = new Card();
-        //         card.cardTCGdex = cardTCGdex;
-        //         await cardRepository.save(card);
-        //     }
-        //     const wantedRepository = AppDataSource.getRepository(Wanted);
-        //     let wanted = await wantedRepository.findOneOrFail({
-        //         where: { id: user.wanted.id },
-        //         relations: {
-        //             cards: true,
-        //         },
-        //     });
-        //     let cardExists = wanted.cards.some(
-        //         (card) => card.cardTCGdex === cardTCGdex
-        //     );
-        //     if (cardExists) {
-        //         res.send("Card already wanted");
-        //         return;
-        //     }
-        //     const collectionRepository = AppDataSource.getRepository(Collection);
-        //     let collection = await collectionRepository.findOneOrFail({
-        //         where: { id: user.collection.id },
-        //         relations: {
-        //             cards: true,
-        //         },
-        //     });
-        //     cardExists = collection.cards.some(
-        //         (card) => card.cardTCGdex === cardTCGdex
-        //     );
-        //     if (cardExists) {
-        //         res.send("Card already in your collection");
-        //         return;
-        //     }
-        //     wanted.cards.push(card);
-        //     await wantedRepository.save(wanted);
-        //     res.status(200).send("Card added to the wanted list");
+        let { cardTCGdex } = req.body;
+        const data = await verifyToken(req.cookies.token);
+        const userId = data.userId;
+        const userRepository = AppDataSource.getRepository(Users);
+        const user = await userRepository.findOneOrFail({
+            where: { id: userId },
+            select: ["wanted"],
+        });
+        const cardRepository = AppDataSource.getRepository(Card);
+        let card = await cardRepository.findOne({
+            where: { cardTCGdex },
+        });
+        if (!card) {
+            card = new Card();
+            card.cardTCGdex = cardTCGdex;
+            await cardRepository.save(card);
+        }
+        const wantedRepository = AppDataSource.getRepository(Wanted);
+        let wanted = await wantedRepository.findOneOrFail({
+            where: { id: user.wanted.id },
+            relations: {
+                cards: true,
+            },
+        });
+        const cardExists = wanted.cards.some(
+            (card) => card.cardTCGdex === cardTCGdex
+        );
+        if (cardExists) {
+            res.send("Card already wanted");
+            return;
+        }
+
+        const carAlreadyInCollection = await AppDataSource.getRepository(
+            CollectionCards
+        )
+            .createQueryBuilder("collectionCards")
+            .leftJoinAndSelect("collectionCards.card", "card")
+            .where("collectionCards.collection.id = :id", {
+                id: user.collection.id,
+            })
+            .andWhere("collectionCards.card = :card", {
+                card: card.id,
+            })
+            .getMany();
+
+        if (carAlreadyInCollection.length > 0) {
+            res.send("Card already in your collection");
+            return;
+        }
+        wanted.cards.push(card);
+        await wantedRepository.save(wanted);
+        res.status(200).send("Card added to the wanted list");
     };
     static getOne = async (req: Request, res: Response) => {
         //     let { cardTCGdex } = req.body;
