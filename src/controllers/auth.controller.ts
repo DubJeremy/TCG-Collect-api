@@ -98,6 +98,7 @@ export default class AuthController {
             userId: user.id,
             username: user.username,
             role: user.role,
+            collectionId: user.collection.id,
         });
 
         res.cookie("token", token, {
@@ -106,7 +107,7 @@ export default class AuthController {
             // secure: process.env.NODE_ENV === "production",
             httpOnly: true, //le httpOnly n'est pas accessible via du code JS, ça limite un peu les injection XSS (mais ce n'est pas infaillible)
             maxAge: 1000 * 60 * 60 * 2, //2 heures
-        }).send(`${token} "logged"`);
+        }).send(`${token} logged`);
     };
 
     static logout(res: Response) {

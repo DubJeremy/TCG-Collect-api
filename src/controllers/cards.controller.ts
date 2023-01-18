@@ -148,25 +148,13 @@ export default class CardController {
             res.status(404).send("Card not found");
         }
     };
-    static update = async (req: Request, res: Response) => {
-        const data = await verifyToken(req.cookies.token);
-        const id = data.userId;
-        let { cardTCGdex, preferred, to_exchange } = req.body;
 
-        let user: Users;
-        try {
-            user = await userRepository.findOneOrFail({ where: { id } });
-        } catch {
-            res.status(401).send("User not found");
-        }
-    };
     static removeFromCollection = async (req: Request, res: Response) => {
         let { cardTCGdex } = req.body;
         const data = await verifyToken(req.cookies.token);
-        const userId = data.userId;
-        const user = await userRepository.findOneOrFail({
-            where: { id: userId },
-            select: ["collection"],
+        const id = data.collectionId;
+        const collection = await collectionRepository.findOneOrFail({
+            where: { id: id },
         });
         const card = await cardRepository.findOneOrFail({
             where: { cardTCGdex: cardTCGdex },
@@ -182,7 +170,7 @@ export default class CardController {
                 card: card.id,
             })
             .andWhere("collectionCards.collection = :collection", {
-                collection: user.collection.id,
+                collection: collection.id,
             })
             .getMany();
 
@@ -247,4 +235,17 @@ export default class CardController {
         // cardRepository.delete(cardTCGdex);
         // res.status(200).send("Card deleted");
     };
+
+    // static update = async (req: Request, res: Response) => {
+    //     const data = await verifyToken(req.cookies.token);
+    //     const id = data.userId;
+    //     let { cardTCGdex, preferred, to_exchange } = req.body;
+
+    //     let user: Users;
+    //     try {
+    //         user = await userRepository.findOneOrFail({ where: { id } });
+    //     } catch {
+    //         res.status(401).send("User not found");
+    //     }
+    // };
 }
