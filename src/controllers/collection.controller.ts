@@ -5,7 +5,7 @@ import { AppDataSource } from "../data-source";
 import { Card } from "../entity/Card";
 import { CollectionCards } from "../entity/CollectionCards";
 import { Users } from "../entity/Users";
-import { verifyToken } from "../middlewares/jwt";
+import { verifyToken } from "../middlewares/checking";
 
 export default class CollectionController {
     static listAllCards = async (req: Request, res: Response) => {

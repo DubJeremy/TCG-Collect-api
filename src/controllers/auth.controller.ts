@@ -7,7 +7,7 @@ import { hashPassword } from "../middlewares/hashPassword";
 import { Collection } from "../entity/Collection";
 import { Users } from "../entity/Users";
 import { Wanted } from "../entity/Wanted";
-import { generateToken } from "../middlewares/jwt";
+import { generateToken } from "../middlewares/checking";
 
 export default class AuthController {
     static register = async (req: Request, res: Response) => {
@@ -32,7 +32,6 @@ export default class AuthController {
         }
 
         let collection = new Collection();
-        console.log(collection.cards);
         let wanted = new Wanted();
         await collectionRepository.save(collection);
         await wantedRepository.save(wanted);

@@ -6,7 +6,7 @@ import { Collection } from "../entity/Collection";
 import { CollectionCards } from "../entity/CollectionCards";
 import { Users } from "../entity/Users";
 import { Wanted } from "../entity/Wanted";
-import { verifyToken } from "../middlewares/jwt";
+import { verifyToken } from "../middlewares/checking";
 
 export default class CardController {
     static addToCollection = async (req: Request, res: Response) => {
@@ -18,7 +18,6 @@ export default class CardController {
             where: { id: userId },
             select: ["collection"],
         });
-        console.log("user", user);
         const cardRepository = AppDataSource.getRepository(Card);
         let card = await cardRepository.findOne({
             where: { cardTCGdex },
@@ -30,32 +29,34 @@ export default class CardController {
             await cardRepository.save(card);
             console.log("la carte n'existait pas");
         }
-        console.log("card", card);
+
         const collectionRepository = AppDataSource.getRepository(Collection);
         let collection = await collectionRepository.findOneOrFail({
             where: { id: user.collection.id },
         });
-        console.log("collection", collection);
 
-        const collectionCardsRepository = await AppDataSource.getRepository(
-            CollectionCards
-        );
+        const alreadyJoined = await AppDataSource.getRepository(CollectionCards)
+            .createQueryBuilder("collectionCards")
+            .leftJoinAndSelect("collectionCards.card", "card")
+            .where("collectionCards.collection.id = :id", {
+                id: collection.id,
+            })
+            .andWhere("collectionCards.card = :card", {
+                card: card.id,
+            })
+            .getMany();
 
-        const alreadyJoined = collection.cards.some(
-            (carte) => carte.card === card
-        );
-        console.log("alreadyJoined", alreadyJoined);
-        let collectionCards: CollectionCards;
-        if (alreadyJoined) {
-            console.log("il y avait déjà une connexion !!");
+        if (alreadyJoined.length > 0) {
             res.send("Card already in the collection");
             return;
         }
-        collectionCards = await new CollectionCards();
+        const collectionCardsRepository = await AppDataSource.getRepository(
+            CollectionCards
+        );
+        let collectionCards = await new CollectionCards();
         collectionCards.collection = collection;
         collectionCards.card = card;
         await collectionCardsRepository.save(collectionCards);
-        console.log("collectionCards", collectionCards);
 
         const wantedRepository = AppDataSource.getRepository(Wanted);
         let wanted = await wantedRepository.findOneOrFail({
@@ -74,14 +75,9 @@ export default class CardController {
             await wantedRepository.save(wanted);
         }
 
-        console.log("card.collections", card.collections);
-        console.log("collection.cards", collection.cards);
-        console.log("collectionCards", collectionCards);
         card.collections.push(collectionCards);
         collection.cards.push(collectionCards);
         try {
-            console.log("collection", collection);
-            console.log("card", card);
             await cardRepository.save(card);
             await collectionRepository.save(collection);
         } catch (e) {

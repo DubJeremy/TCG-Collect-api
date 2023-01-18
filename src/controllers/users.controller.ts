@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { validate } from "class-validator";
 
 import { AppDataSource } from "../data-source";
-import { verifyToken } from "../middlewares/jwt";
+import { verifyToken } from "../middlewares/checking";
 import { Users } from "../entity/Users";
 import { Collection } from "../entity/Collection";
 import { Wanted } from "../entity/Wanted";

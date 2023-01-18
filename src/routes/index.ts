@@ -4,7 +4,7 @@ import authRoutes from "./auth.routes";
 import usersRoutes from "./users.routes";
 import cardsRoutes from "./card.routes";
 import collectionRoutes from "./collection.routes";
-import { authorization } from "../middlewares/jwt";
+import { authorization } from "../middlewares/checking";
 
 const router = Router();
 
