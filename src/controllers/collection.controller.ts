@@ -7,11 +7,12 @@ import { CollectionCards } from "../entity/CollectionCards";
 import { Users } from "../entity/Users";
 import { verifyToken } from "../middlewares/checking";
 
+const userRepository = AppDataSource.getRepository(Users);
+
 export default class CollectionController {
     static listAllCards = async (req: Request, res: Response) => {
         const data = await verifyToken(req.cookies.token);
         const id = data.userId;
-        const userRepository = AppDataSource.getRepository(Users);
         const user = await userRepository.findOneOrFail({
             where: { id: id },
             select: ["collection"],
@@ -36,7 +37,6 @@ export default class CollectionController {
     static listAllFavorites = async (req: Request, res: Response) => {
         const data = await verifyToken(req.cookies.token);
         const id = data.userId;
-        const userRepository = AppDataSource.getRepository(Users);
         const user = await userRepository.findOneOrFail({
             where: { id: id },
             select: ["collection"],
@@ -66,7 +66,6 @@ export default class CollectionController {
     static listAllToExchange = async (req: Request, res: Response) => {
         const data = await verifyToken(req.cookies.token);
         const id = data.userId;
-        const userRepository = AppDataSource.getRepository(Users);
         const user = await userRepository.findOneOrFail({
             where: { id: id },
             select: ["collection"],
@@ -98,7 +97,6 @@ export default class CollectionController {
     // static getOneToExchange = async (req: Request, res: Response) => {
     //     const data = await verifyToken(req.cookies.token);
     //     const id = data.userId;
-    //     const userRepository = AppDataSource.getRepository(Users);
     //     const user = await userRepository.findOneOrFail({
     //         where: { id: id },
     //         select: ["collection"],

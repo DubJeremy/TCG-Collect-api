@@ -7,9 +7,12 @@ import { Users } from "../entity/Users";
 import { Collection } from "../entity/Collection";
 import { Wanted } from "../entity/Wanted";
 
+const userRepository = AppDataSource.getRepository(Users);
+const wantedRepository = AppDataSource.getRepository(Wanted);
+const collectionRepository = AppDataSource.getRepository(Collection);
+
 export default class UsersController {
     static listAll = async (req: Request, res: Response) => {
-        const userRepository = AppDataSource.getRepository(Users);
         const users = await userRepository.find({
             select: ["username"],
         });
@@ -19,7 +22,6 @@ export default class UsersController {
     static getOne = async (req: Request, res: Response) => {
         const data = await verifyToken(req.cookies.token);
         const id = data.userId;
-        const userRepository = AppDataSource.getRepository(Users);
 
         try {
             const user = await userRepository.findOneOrFail({
@@ -36,7 +38,6 @@ export default class UsersController {
         const data = await verifyToken(req.cookies.token);
         const id = data.userId;
         const { username, email } = req.body;
-        const userRepository = AppDataSource.getRepository(Users);
 
         let user: Users;
         try {
@@ -73,7 +74,6 @@ export default class UsersController {
         let collection: Collection;
         let wanted: Wanted;
 
-        const userRepository = AppDataSource.getRepository(Users);
         try {
             user = await userRepository.findOne({ where: { id: id } });
         } catch (error) {
@@ -81,7 +81,6 @@ export default class UsersController {
             return;
         }
 
-        const collectionRepository = AppDataSource.getRepository(Collection);
         try {
             collection = await collectionRepository.findOne({
                 where: { id: user.collection.id },
@@ -91,7 +90,6 @@ export default class UsersController {
             return;
         }
 
-        const wantedRepository = AppDataSource.getRepository(Wanted);
         try {
             wanted = await wantedRepository.findOne({
                 where: { id: user.wanted.id },
