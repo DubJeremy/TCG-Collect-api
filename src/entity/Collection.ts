@@ -21,7 +21,6 @@ export class Collection {
         {
             eager: true,
             cascade: true,
-            onDelete: "CASCADE",
         }
     )
     @JoinTable()

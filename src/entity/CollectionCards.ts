@@ -8,10 +8,14 @@ export class CollectionCards {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne((type) => Collection, (collection) => collection.cards)
+    @ManyToOne((type) => Collection, (collection) => collection.cards, {
+        onDelete: "CASCADE",
+    })
     collection: Collection;
 
-    @ManyToOne((type) => Card, (card) => card.collections)
+    @ManyToOne((type) => Card, (card) => card.collections, {
+        onDelete: "CASCADE",
+    })
     card: Card;
 
     @Column({ default: false })
@@ -19,4 +23,5 @@ export class CollectionCards {
 
     @Column({ default: false })
     to_exchange: boolean;
+    length: number;
 }

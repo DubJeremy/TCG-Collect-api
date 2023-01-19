@@ -21,11 +21,11 @@ export default class CardController {
         const userId = data.userId;
         const user = await userRepository.findOneOrFail({
             where: { id: userId },
-            select: ["collection"],
         });
         let card = await cardRepository.findOne({
             where: { cardTCGdex },
         });
+
         if (!card) {
             card = new Card();
             card.cardTCGdex = cardTCGdex;
@@ -91,7 +91,6 @@ export default class CardController {
         const userId = data.userId;
         const user = await userRepository.findOneOrFail({
             where: { id: userId },
-            select: ["wanted"],
         });
         let card = await cardRepository.findOne({
             where: { cardTCGdex },
@@ -156,9 +155,16 @@ export default class CardController {
         const collection = await collectionRepository.findOneOrFail({
             where: { id: id },
         });
-        const card = await cardRepository.findOneOrFail({
-            where: { cardTCGdex: cardTCGdex },
-        });
+
+        let card: Card;
+        try {
+            card = await cardRepository.findOneOrFail({
+                where: { cardTCGdex: cardTCGdex },
+            });
+        } catch (e) {
+            res.send(e);
+            return;
+        }
 
         const collectionCards = await AppDataSource.getRepository(
             CollectionCards
@@ -222,30 +228,18 @@ export default class CardController {
 
     // TODO delete for admin
     static delete = async (req: Request, res: Response) => {
-        // let { cardTCGdex } = req.body;
-        // let card: Card;
-        // try {
-        //     card = await cardRepository.findOneOrFail({
-        //         where: { cardTCGdex },
-        //     });
-        // } catch (error) {
-        //     res.status(404).send("Card not found");
-        //     return;
-        // }
-        // cardRepository.delete(cardTCGdex);
-        // res.status(200).send("Card deleted");
+        let { cardTCGdex } = req.body;
+        const card = await cardRepository.findOneOrFail({
+            where: { cardTCGdex: cardTCGdex },
+        });
+
+        try {
+            await cardRepository.delete({ cardTCGdex: cardTCGdex });
+        } catch (error) {
+            res.status(404).send(error);
+            return;
+        }
+
+        res.status(200).send("Card deleted");
     };
-
-    // static update = async (req: Request, res: Response) => {
-    //     const data = await verifyToken(req.cookies.token);
-    //     const id = data.userId;
-    //     let { cardTCGdex, preferred, to_exchange } = req.body;
-
-    //     let user: Users;
-    //     try {
-    //         user = await userRepository.findOneOrFail({ where: { id } });
-    //     } catch {
-    //         res.status(401).send("User not found");
-    //     }
-    // };
 }

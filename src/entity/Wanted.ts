@@ -19,7 +19,9 @@ export class Wanted {
     @JoinTable()
     cards: Card[];
 
-    @OneToOne(() => Users, (user) => user.collection, {
+    @OneToOne(() => Users, (user) => user.wanted, {
+        //     eager: true,
+        //     cascade: true,
         onDelete: "CASCADE",
     })
     @JoinColumn()

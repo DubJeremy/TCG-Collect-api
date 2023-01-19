@@ -85,12 +85,12 @@ export default class AuthController {
             });
             // SELECT * FROM users WHERE username = ? OR email = ?
         } catch (error) {
-            res.status(401).send("Invalid username or password");
+            res.status(401).send("Invalid informations");
             return;
         }
 
         if (!(await bcrypt.compare(password, user.password))) {
-            res.status(401).send("Invalid username or password");
+            res.status(401).send("Invalid informations");
             return;
         }
 
