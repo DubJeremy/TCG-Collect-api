@@ -2,14 +2,19 @@ import { Request, Response } from "express";
 import { validate } from "class-validator";
 
 import { AppDataSource } from "../data-source";
-import { verifyToken } from "../middlewares/jwt";
+import { verifyToken } from "../middlewares/checking";
 import { Users } from "../entity/Users";
 import { Collection } from "../entity/Collection";
 import { Wanted } from "../entity/Wanted";
+import { CollectionCards } from "../entity/CollectionCards";
+
+const userRepository = AppDataSource.getRepository(Users);
+const wantedRepository = AppDataSource.getRepository(Wanted);
+const collectionRepository = AppDataSource.getRepository(Collection);
+const collectionCardsRepository = AppDataSource.getRepository(CollectionCards);
 
 export default class UsersController {
     static listAll = async (req: Request, res: Response) => {
-        const userRepository = AppDataSource.getRepository(Users);
         const users = await userRepository.find({
             select: ["username"],
         });
@@ -19,12 +24,10 @@ export default class UsersController {
     static getOne = async (req: Request, res: Response) => {
         const data = await verifyToken(req.cookies.token);
         const id = data.userId;
-        const userRepository = AppDataSource.getRepository(Users);
 
         try {
             const user = await userRepository.findOneOrFail({
                 where: { id },
-                select: ["username"],
             });
 
             res.status(200).send(user);
@@ -36,7 +39,6 @@ export default class UsersController {
         const data = await verifyToken(req.cookies.token);
         const id = data.userId;
         const { username, email } = req.body;
-        const userRepository = AppDataSource.getRepository(Users);
 
         let user: Users;
         try {
@@ -68,42 +70,23 @@ export default class UsersController {
     };
     static delete = async (req: Request, res: Response) => {
         const data = await verifyToken(req.cookies.token);
-        const id = data.userId;
-        let user: Users;
-        let collection: Collection;
-        let wanted: Wanted;
+        const userId = data.userId;
+        const collectionId = data.collectionId;
+        let user = await userRepository.findOneOrFail({
+            where: { id: userId },
+        });
 
-        const userRepository = AppDataSource.getRepository(Users);
         try {
-            user = await userRepository.findOne({ where: { id: id } });
-        } catch (error) {
-            res.status(404).send("User not found");
+            // await collectionRepository.delete({ id: collectionId });
+            // await wantedRepository.delete({ id: user.wanted.id });
+            // await collectionCardsRepository.delete({
+            //     collection: collectionId,
+            // });
+            await userRepository.delete({ id: userId });
+        } catch (e) {
+            res.status(409).send(e);
             return;
         }
-
-        const collectionRepository = AppDataSource.getRepository(Collection);
-        try {
-            collection = await collectionRepository.findOne({
-                where: { id: user.collection.id },
-            });
-        } catch (error) {
-            res.status(404).send(error);
-            return;
-        }
-
-        const wantedRepository = AppDataSource.getRepository(Wanted);
-        try {
-            wanted = await wantedRepository.findOne({
-                where: { id: user.wanted.id },
-            });
-        } catch (error) {
-            res.status(404).send(error);
-            return;
-        }
-
-        await collectionRepository.remove(collection);
-        await wantedRepository.remove(wanted);
-
         res.clearCookie("token").status(200).send("User deleted");
     };
 }

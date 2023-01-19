@@ -2,12 +2,12 @@ import {
     Entity,
     JoinColumn,
     JoinTable,
-    ManyToMany,
+    OneToMany,
     OneToOne,
     PrimaryGeneratedColumn,
 } from "typeorm";
 
-import { Card } from "./Card";
+import { CollectionCards } from "./CollectionCards";
 import { Users } from "./Users";
 
 @Entity()
@@ -15,9 +15,16 @@ export class Collection {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToMany(() => Card, { cascade: true })
+    @OneToMany(
+        () => CollectionCards,
+        (collectionCard) => collectionCard.collection,
+        {
+            eager: true,
+            cascade: true,
+        }
+    )
     @JoinTable()
-    cards: Card[];
+    cards: CollectionCards[];
 
     @OneToOne(() => Users, (user) => user.collection, {
         onDelete: "CASCADE",

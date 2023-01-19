@@ -5,6 +5,6 @@ import { Card } from "../entity/Card";
 import { Collection } from "../entity/Collection";
 import { Users } from "../entity/Users";
 import { Wanted } from "../entity/Wanted";
-import { verifyToken } from "../middlewares/jwt";
+import { verifyToken } from "../middlewares/checking";
 
 export default class WantedController {}

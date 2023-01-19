@@ -43,7 +43,6 @@ export class Users {
     @OneToOne(() => Wanted, (wanted) => wanted.user, {
         eager: true,
         cascade: true,
-        onDelete: "CASCADE",
     })
     @JoinColumn()
     wanted: Wanted;

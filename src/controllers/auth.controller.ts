@@ -7,14 +7,15 @@ import { hashPassword } from "../middlewares/hashPassword";
 import { Collection } from "../entity/Collection";
 import { Users } from "../entity/Users";
 import { Wanted } from "../entity/Wanted";
-import { generateToken } from "../middlewares/jwt";
+import { generateToken } from "../middlewares/checking";
+
+const userRepository = AppDataSource.getRepository(Users);
+const wantedRepository = AppDataSource.getRepository(Wanted);
+const collectionRepository = AppDataSource.getRepository(Collection);
 
 export default class AuthController {
     static register = async (req: Request, res: Response) => {
         let { username, password, email } = req.body;
-        const userRepository = AppDataSource.getRepository(Users);
-        const collectionRepository = AppDataSource.getRepository(Collection);
-        const wantedRepository = AppDataSource.getRepository(Wanted);
 
         const usernameCheck = await userRepository.find({
             where: { username },
@@ -77,7 +78,6 @@ export default class AuthController {
             return;
         }
 
-        const userRepository = AppDataSource.getRepository(Users);
         let user: Users;
         try {
             user = await userRepository.findOneOrFail({
@@ -85,12 +85,12 @@ export default class AuthController {
             });
             // SELECT * FROM users WHERE username = ? OR email = ?
         } catch (error) {
-            res.status(401).send("Invalid username or password");
+            res.status(401).send("Invalid informations");
             return;
         }
 
         if (!(await bcrypt.compare(password, user.password))) {
-            res.status(401).send("Invalid username or password");
+            res.status(401).send("Invalid informations");
             return;
         }
 
@@ -98,6 +98,7 @@ export default class AuthController {
             userId: user.id,
             username: user.username,
             role: user.role,
+            collectionId: user.collection.id,
         });
 
         res.cookie("token", token, {
@@ -106,7 +107,7 @@ export default class AuthController {
             // secure: process.env.NODE_ENV === "production",
             httpOnly: true, //le httpOnly n'est pas accessible via du code JS, ça limite un peu les injection XSS (mais ce n'est pas infaillible)
             maxAge: 1000 * 60 * 60 * 2, //2 heures
-        }).send(`${token} "logged"`);
+        }).send(`${token} logged`);
     };
 
     static logout(res: Response) {
