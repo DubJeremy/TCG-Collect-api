@@ -30,7 +30,7 @@
         "build": "tsc -p ./",
         "start": "tsc -p ./ && node build/index.js",
         "migration:create": "tsc -p ./ && typeorm-ts-node-commonjs migration:create ./src/migrations/migration",
-        "migration:generate": "tsc -p ./ && typeorm-ts-node-commonjs migration:generate src/migrations/migration",
+        "migration:generate": "tsc -p ./ && typeorm-ts-node-commonjs migration:generate -d src/data-source.ts src/migrations/migration",
         "migration": "tsc -p ./ && typeorm-ts-node-commonjs migration:run -d ./build/data-source.js"
     }
 }

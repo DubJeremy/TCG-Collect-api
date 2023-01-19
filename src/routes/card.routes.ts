@@ -9,7 +9,7 @@ router.post("/addToWanted", CardController.addToWanted);
 router.put("/removeFromCollection", CardController.removeFromCollection);
 router.put("/removeFromWanted", CardController.removeFromWanted);
 router.get("/getOne", CardController.getOne);
+// TODO delete for admin
 router.delete("/delete", CardController.delete);
-// router.patch("/update", CardController.update);
 
 export default router;

@@ -225,8 +225,6 @@ export default class CardController {
         }
         res.status(200).send("Card remove from the wanted list");
     };
-
-    // TODO delete for admin
     static delete = async (req: Request, res: Response) => {
         let { cardTCGdex } = req.body;
         const card = await cardRepository.findOneOrFail({
