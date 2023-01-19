@@ -6,7 +6,7 @@ export class Card {
     id: number;
 
     @Column({ unique: true })
-    card_id: string;
+    cardTCGdex: string;
 
     @Column({ default: false })
     preferred: boolean;

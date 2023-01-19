@@ -1,14 +1,17 @@
 import { Router } from "express";
 
 import authRoutes from "./auth.routes";
-// TODO Middleware check JWT
-// import { checkJwt } from "../middlewares/checkJwt";
+import usersRoutes from "./users.routes";
+import cardsRoutes from "./card.routes";
+import { authorization } from "../middlewares/jwt";
 
 const router = Router();
 
 router.use("/auth", authRoutes);
-// router.use("/user", userRoutes);
-// router.use("/cards", cardsRoutes);
+router.use("/user", authorization, usersRoutes);
+router.use("/cards", cardsRoutes);
+// TODO remettre authorization
+// router.use("/cards", authorization, cardsRoutes);
 
 router.use("*", (req, res) => res.sendStatus(404));
 

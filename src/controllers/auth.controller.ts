@@ -1,33 +1,47 @@
 import { Request, Response } from "express";
 import { validate } from "class-validator";
-
 let bcrypt = require("bcryptjs");
-let jwt = require("jsonwebtoken");
 
 import { AppDataSource } from "../data-source";
 import { hashPassword } from "../middlewares/hashPassword";
-import CardCollectionController from "./cardCollection.controller";
-import { CardCollection } from "../entity/CardCollection";
+import { Collection } from "../entity/Collection";
 import { Users } from "../entity/Users";
-import CardWantedController from "./cardWanted.controller";
-import { CardWanted } from "../entity/CardWanted";
+import { Wanted } from "../entity/Wanted";
+import { generateToken } from "../middlewares/jwt";
 
 export default class AuthController {
     static register = async (req: Request, res: Response) => {
-        await CardCollectionController.create(req, res);
-        await CardWantedController.create(req, res);
-
-        const collection = await AppDataSource.manager.find(CardCollection);
-        const wanted = await AppDataSource.manager.find(CardWanted);
-
         let { username, password, email } = req.body;
+        const userRepository = AppDataSource.getRepository(Users);
+        const collectionRepository = AppDataSource.getRepository(Collection);
+        const wantedRepository = AppDataSource.getRepository(Wanted);
 
-        let user = new Users();
+        const usernameCheck = await userRepository.find({
+            where: { username },
+        });
+        if (usernameCheck.length > 0) {
+            res.send("username already exists");
+            return;
+        }
+        const emailCheck = await userRepository.find({
+            where: { email },
+        });
+        if (emailCheck.length > 0) {
+            res.send("email already exists");
+            return;
+        }
+
+        let collection = new Collection();
+        let wanted = new Wanted();
+        await collectionRepository.save(collection);
+        await wantedRepository.save(wanted);
+
+        let user: Users = new Users();
         user.username = username;
         user.password = password;
         user.email = email;
-        user.card_collection_id = collection[collection.length - 1];
-        user.card_wanted_id = wanted[wanted.length - 1];
+        user.collection = collection;
+        user.wanted = wanted;
 
         const errors = await validate(user);
         if (errors.length > 0) {
@@ -36,24 +50,40 @@ export default class AuthController {
         }
 
         user.password = hashPassword(password);
-
-        const userRepository = AppDataSource.getRepository(Users);
         try {
             await userRepository.save(user);
         } catch (e) {
-            res.status(409).send(e.detail);
+            res.status(409).send(e);
             return;
         }
+
+        collection.user = user;
+        wanted.user = user;
+        try {
+            await collectionRepository.save(collection);
+            await wantedRepository.save(wanted);
+        } catch (e) {
+            res.status(409).send(e);
+            return;
+        }
+
         res.status(201).send("User created");
     };
 
     static login = async (req: Request, res: Response) => {
-        const { username, password } = req.body;
+        const { username, email, password } = req.body;
+        if (!((username && password) || (email && password))) {
+            res.status(400).send("missing information");
+            return;
+        }
 
         const userRepository = AppDataSource.getRepository(Users);
         let user: Users;
         try {
-            user = await userRepository.findOneOrFail({ where: { username } });
+            user = await userRepository.findOneOrFail({
+                where: [{ username }, { email }],
+            });
+            // SELECT * FROM users WHERE username = ? OR email = ?
         } catch (error) {
             res.status(401).send("Invalid username or password");
             return;
@@ -64,35 +94,55 @@ export default class AuthController {
             return;
         }
 
-        const token = jwt.sign(
-            { userId: user.id, username: user.username },
-            process.env.JWT_SECRET as string,
-            { expiresIn: "1h" }
-        );
+        const token = await generateToken({
+            userId: user.id,
+            username: user.username,
+            role: user.role,
+        });
 
-        res.send({ token, user });
+        res.cookie("token", token, {
+            path: "/",
+            secure: true,
+            // secure: process.env.NODE_ENV === "production",
+            httpOnly: true, //le httpOnly n'est pas accessible via du code JS, ça limite un peu les injection XSS (mais ce n'est pas infaillible)
+            maxAge: 1000 * 60 * 60 * 2, //2 heures
+        }).send(`${token} "logged"`);
     };
-    //TODO: update fonction
-    // static update = async (req: Request, res: Response) => {
-    //     const id = req.params.id;
 
-    //     const { username, password } = req.body;
-
-    //     const hashedPassword = await bcrypt.hash(password, 10);
-
-    //     const entityManager = getManager();
-
-    //     let user: User;
+    static logout(res: Response) {
+        return res
+            .clearCookie("token")
+            .send("logout")
+            .status(200)
+            .send("logged out");
+    }
+    //TODO : reset password
+    // static async resetPassword(req, res) {
     //     try {
-    //         user = await entityManager.findOneOrFail(User, id);
-    //         user.username = username;
-    //         user.password = hashedPassword;
-    //         await entityManager.save(user);
-    //     } catch (error) {
-    //         res.status(404).send("User not found");
-    //         return;
-    //     }
+    //         const { email } = req.body;
 
-    //     res.send(user);
-    // };
+    //         const user = await User.findOne({ email });
+
+    //         if (user) {
+    //             let token = await ResetToken.findOne({ user: user._id });
+    //             if (token) {
+    //                 await token.deleteOne();
+    //             }
+    //             let resetToken = crypto.randomBytes(32).toString('hex');
+    //             const hash = await hashPassword(resetToken);
+
+    //             await new ResetToken({
+    //                 user: user._id,
+    //                 token: hash,
+    //                 createdAt: Date.now(),
+    //             }).save();
+
+    //             await resetLink(user.email, req.headers['x-forwarded-for'] || req.socket.remoteAddress, hash);
+    //         }
+    //     } catch (e) {
+    //         console.error(e);
+    //     } finally {
+    //         return res.sendStatus(200);
+    //     }
+    // }
 }

@@ -1,6 +1,7 @@
 import * as express from "express";
 import * as dotenv from "dotenv";
 import "reflect-metadata";
+let cookieParser = require("cookie-parser");
 
 import { AppDataSource } from "./data-source";
 import routes from "./routes";
@@ -17,6 +18,7 @@ AppDataSource.initialize()
 
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
 
 app.use("/api", routes);
 
