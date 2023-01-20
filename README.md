@@ -1,3 +1,5 @@
+![Cover](https://github.com/DubJeremy/TCG-Collect-api/blob/readme/CoverPhotoReadme/CoverPhoto.jpg)
+
 # TCG-Collect-api
 
 Bienvenue sur le repository de l'API de mon application de gestion de collection de cartes Pokémon _TCG-Collect_.
