@@ -1,4 +1,4 @@
-# Collection-api
+# TCG-Collect-api
 
 Steps to run this project:
 
